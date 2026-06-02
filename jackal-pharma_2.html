@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jackal Pharma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #060508;
+    --surface: #0c0a0d;
+    --card: #0f0c10;
+    --border: #1c1418;
+    --border-bright: #2e1e22;
+    --text: #c0b4b6;
+    --muted: #4a3840;
+    --accent: #a01c2a;
+    --accent-dim: #6b1219;
+    --accent-glow: rgba(160,28,42,0.18);
+    --white: #ede0e2;
+    --danger: #7a1010;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    overflow-x: hidden;
+    cursor: crosshair;
+    background-image: radial-gradient(ellipse 120% 80% at 50% 0%, rgba(100,10,18,0.18) 0%, transparent 60%);
+  }
+
+  /* ── GATE ── */
+  #gate {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  #gate.hidden { opacity: 0; visibility: hidden; }
+
+  .gate-inner {
+    width: min(520px, 90vw);
+    border: 1px solid var(--border-bright);
+    background: var(--surface);
+    padding: 52px 44px;
+  }
+
+  .gate-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 0.15em;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .gate-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 44px;
+  }
+
+  .gate-section-label {
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .dob-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .scroll-select-wrap {
+    position: relative;
+    border: 1px solid var(--border-bright);
+    background: var(--card);
+  }
+  .scroll-select-wrap label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 14px 2px;
+  }
+  .scroll-select-wrap select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 4px 14px 10px;
+    appearance: none;
+    cursor: pointer;
+  }
+  .scroll-select-wrap::after {
+    content: '▾';
+    position: absolute;
+    right: 12px; bottom: 10px;
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 10px;
+  }
+  .scroll-select-wrap select option { background: #111; }
+
+  .disclaimer-block {
+    border: 1px solid var(--border-bright);
+    background: var(--card);
+    padding: 18px;
+    margin-bottom: 28px;
+  }
+  .disclaimer-block p {
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .check-row {
+    display: flex; align-items: flex-start; gap: 12px;
+    cursor: pointer;
+  }
+  .check-row input[type="checkbox"] {
+    appearance: none;
+    width: 16px; height: 16px; min-width: 16px;
+    border: 1px solid var(--border-bright);
+    background: var(--bg);
+    cursor: pointer;
+    margin-top: 1px;
+    position: relative;
+  }
+  .check-row input[type="checkbox"]:checked::after {
+    content: '✕';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    color: var(--accent);
+  }
+  .check-row span {
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  #gate-error {
+    font-size: 11px;
+    color: var(--danger);
+    margin-bottom: 16px;
+    min-height: 16px;
+    letter-spacing: 0.05em;
+  }
+
+  .gate-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #f0e0e2;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.2em;
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .gate-btn:hover { background: #c02535; }
+
+  /* ── MAIN SITE ── */
+  #site { opacity: 0; transition: opacity 1s ease 0.3s; }
+  #site.visible { opacity: 1; }
+
+  /* HERO */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding: 0 10vw;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(140,20,32,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(160,28,42,0.06) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(160,28,42,0.06) 80px);
+    pointer-events: none;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+
+  .hero-title-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    margin-bottom: 32px;
+  }
+
+  .jackal-face {
+    width: clamp(90px, 10vw, 150px);
+    height: auto;
+    opacity: 0.88;
+    filter: drop-shadow(0 0 18px rgba(160,28,42,0.18)) drop-shadow(0 2px 6px rgba(0,0,0,0.8));
+    flex-shrink: 0;
+    margin-bottom: -10px;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(72px, 12vw, 160px);
+    line-height: 0.9;
+    color: var(--white);
+    letter-spacing: 0.04em;
+    margin-bottom: 0;
+  }
+
+  .hero-title span {
+    display: block;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(200,192,176,0.2);
+  }
+
+  .hero-sub {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(16px, 2.5vw, 22px);
+    color: var(--muted);
+    max-width: 480px;
+    line-height: 1.5;
+    margin-bottom: 60px;
+  }
+
+  .scroll-hint {
+    display: flex; align-items: center; gap: 16px;
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .scroll-hint-line {
+    width: 40px; height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+    animation: linePulse 2s ease-in-out infinite;
+  }
+  @keyframes linePulse {
+    0%, 100% { opacity: 0.4; } 50% { opacity: 1; }
+  }
+
+  .hero-count {
+    position: absolute;
+    right: 10vw; bottom: 10vh;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 180px;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(184,134,11,0.08);
+    letter-spacing: -0.05em;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* CATALOG SECTION */
+  #catalog {
+    padding: 120px 10vw;
+    position: relative;
+  }
+
+  .catalog-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 64px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+  .catalog-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 0.1em;
+    color: var(--white);
+  }
+  .catalog-note {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+  }
+
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .tile {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 44px 36px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  .tile.reveal {
+    animation: tileReveal 0.7s ease forwards;
+  }
+  .tile:nth-child(2) { animation-delay: 0.1s; }
+  .tile:nth-child(3) { animation-delay: 0.2s; }
+
+  @keyframes tileReveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(140,20,32,0.08) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .tile:hover { border-color: var(--accent-dim); transform: translateY(-4px); }
+  .tile:hover::before { opacity: 1; }
+
+  .tile-index {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    margin-bottom: 32px;
+    display: block;
+  }
+
+  .tile-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 0.06em;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .tile-aka {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 36px;
+  }
+
+  .tile-divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 28px;
+  }
+
+  .tile-meta {
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  .tile-price {
+    font-size: 26px;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.08em;
+    color: var(--white);
+  }
+  .tile-dose {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .tile-arrow {
+    position: absolute;
+    bottom: 36px; right: 36px;
+    font-size: 18px;
+    color: var(--accent);
+    opacity: 0;
+    transform: translateX(-8px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .tile:hover .tile-arrow { opacity: 1; transform: translateX(0); }
+
+  /* PRODUCT PAGE */
+  #product-page {
+    display: none;
+    min-height: 100vh;
+    padding: 80px 10vw;
+  }
+  #product-page.open { display: block; }
+
+  .product-back {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; margin-bottom: 60px;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .product-back:hover { color: var(--accent); }
+
+  .product-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 40px;
+    align-items: start;
+  }
+
+  .product-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 60px 52px;
+  }
+
+  .product-card .tile-index { margin-bottom: 20px; }
+  .product-card .tile-name { font-size: 80px; }
+  .product-card .tile-aka { font-size: 15px; margin-bottom: 44px; }
+
+  .product-body {
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--muted);
+    margin-bottom: 40px;
+  }
+
+  .product-props {
+    border-top: 1px solid var(--border);
+    padding-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .prop-row {}
+  .prop-label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .prop-val {
+    font-size: 14px;
+    color: var(--white);
+  }
+
+  /* PURCHASE PANEL */
+  .purchase-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 36px 32px;
+    position: sticky;
+    top: 80px;
+  }
+
+  .pp-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-bottom: 28px;
+    text-transform: uppercase;
+  }
+
+  .pp-price-block {
+    margin-bottom: 28px;
+  }
+  .pp-price {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    color: var(--white);
+    letter-spacing: 0.06em;
+    line-height: 1;
+  }
+  .pp-per {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .pp-divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  .pp-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .pp-qty-row {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-bright);
+  }
+  .qty-btn {
+    width: 44px; height: 44px;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: 'DM Mono', monospace;
+  }
+  .qty-btn:hover { background: var(--border-bright); }
+  #qty-display {
+    flex: 1; height: 44px;
+    background: var(--card);
+    border: none;
+    border-left: 1px solid var(--border-bright);
+    border-right: 1px solid var(--border-bright);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    text-align: center;
+  }
+
+  .pp-total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 28px;
+  }
+  .pp-total-label { font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; }
+  .pp-total-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--white);
+    letter-spacing: 0.08em;
+  }
+
+  .pp-cta {
+    width: 100%;
+    background: var(--accent);
+    color: #f0e0e2;
+    border: none;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 0.25em;
+    padding: 18px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 14px;
+  }
+  .pp-cta:hover { background: #c02535; }
+
+  .pp-sandbox-note {
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.1em;
+    line-height: 1.6;
+  }
+
+  .pp-confirm {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--accent-dim);
+    padding: 16px;
+    margin-top: 16px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .pp-confirm.show { display: block; }
+
+  .deal-explainer { margin-top: 8px; }
+  .deal-ex-title {
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .deal-ex-grid { display: flex; flex-direction: column; gap: 8px; }
+  .deal-ex-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .deal-ex-highlight {
+    border-color: rgba(160,28,42,0.4);
+    background: rgba(160,28,42,0.06);
+  }
+  .deal-ex-badge { font-size: 11px; color: var(--text); letter-spacing: 0.04em; }
+  .deal-ex-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: 0.12em;
+    color: var(--white);
+  }
+  .deal-ex-highlight .deal-ex-val { color: var(--accent); }
+
+  /* DEAL NUDGE */
+  .deal-nudge {
+    display: none;
+    background: rgba(160,28,42,0.08);
+    border: 1px solid rgba(160,28,42,0.3);
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .deal-nudge.show { display: flex; }
+  .deal-nudge-icon { font-size: 14px; color: var(--accent); margin-top: 1px; }
+  .deal-nudge-text { font-size: 11px; line-height: 1.7; color: var(--text); }
+  .deal-nudge-text strong { color: var(--white); font-weight: 500; }
+
+  /* CART */
+  .cart-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .cart-clear {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; text-decoration: underline;
+    transition: color 0.2s;
+  }
+  .cart-clear:hover { color: var(--accent); }
+  .cart-lines { margin-bottom: 8px; min-height: 28px; }
+  .cart-empty { font-size: 11px; color: var(--muted); font-style: italic; padding: 4px 0; }
+  .cart-line {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .cart-line:last-child { border-bottom: none; }
+  .cart-line-name { color: var(--white); letter-spacing: 0.05em; }
+  .cart-line-qty { color: var(--muted); font-size: 11px; margin: 0 8px; }
+  .cart-line-price { color: var(--text); }
+  .cart-line-remove { color: var(--muted); cursor: pointer; font-size: 14px; margin-left: 10px; transition: color 0.15s; }
+  .cart-line-remove:hover { color: var(--accent); }
+
+  /* DISCOUNT BLOCK */
+  .discount-block {
+    background: rgba(160,28,42,0.1);
+    border: 1px solid rgba(160,28,42,0.35);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .discount-tier-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .discount-savings { font-size: 11px; color: var(--text); line-height: 1.6; }
+
+  .strikethrough-val { text-decoration: line-through; color: var(--muted); font-size: 18px; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 10vw;
+    background: linear-gradient(to bottom, rgba(8,8,8,0.95), transparent);
+    pointer-events: none;
+  }
+  nav.show-full { background: rgba(8,8,8,0.97); border-bottom: 1px solid var(--border); pointer-events: all; }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    color: var(--white);
+    pointer-events: all;
+    cursor: pointer;
+  }
+  .nav-logo span { color: var(--accent); }
+
+  .nav-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--muted);
+    pointer-events: all;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 36px 10vw;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.15em; color: var(--muted); }
+  .footer-note { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-align: right; line-height: 1.8; }
+
+  @media (max-width: 900px) {
+    .tiles { grid-template-columns: 1fr; }
+    .product-layout { grid-template-columns: 1fr; }
+    .purchase-panel { position: static; }
+    .product-card .tile-name { font-size: 56px; }
+    .hero-title { font-size: clamp(56px, 14vw, 100px); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ GATE ══ -->
+<div id="gate">
+  <div class="gate-inner">
+    <div class="gate-logo">Jackal Pharma</div>
+    <div class="gate-tagline">Three compounds. All you require.</div>
+
+    <div class="gate-section-label">Date of Birth</div>
+    <div class="dob-row">
+      <div class="scroll-select-wrap">
+        <label>Month</label>
+        <select id="dob-month">
+          <option value="">—</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+      </div>
+      <div class="scroll-select-wrap">
+        <label>Day</label>
+        <select id="dob-day">
+          <option value="">—</option>
+          <!-- filled by JS -->
+        </select>
+      </div>
+      <div class="scroll-select-wrap">
+        <label>Year</label>
+        <select id="dob-year">
+          <option value="">—</option>
+          <!-- filled by JS -->
+        </select>
+      </div>
+    </div>
+
+    <div class="disclaimer-block">
+      <p>The compounds listed on this site are intended strictly for research and laboratory use only. They are not approved by the FDA for human consumption. By proceeding, you confirm you are a qualified researcher or professional acquiring these compounds solely for lawful research purposes.</p>
+      <label class="check-row">
+        <input type="checkbox" id="disclaimer-check">
+        <span>I understand and agree that all products on this site are for research purposes only and not for human consumption.</span>
+      </label>
+    </div>
+
+    <div id="gate-error"></div>
+    <button class="gate-btn" onclick="verifyGate()">Enter</button>
+  </div>
+</div>
+
+<!-- ══ SITE ══ -->
+<div id="site">
+
+  <nav id="main-nav">
+    <div class="nav-logo" onclick="showCatalog()">JACKAL <span>PHARMA</span></div>
+    <div class="nav-tagline">Three divine vials for your future.</div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-eyebrow">Est. for the select few</div>
+    <div class="hero-title-row">
+      <h1 class="hero-title">
+        JACKAL
+        <span>PHARMA</span>
+      </h1>
+      <svg class="jackal-face" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- left ear outer -->
+        <polygon points="52,108 24,14 82,72" fill="#110a0c"/>
+        <!-- left ear inner -->
+        <polygon points="55,102 36,30 76,70" fill="#1e0f12"/>
+        <!-- right ear outer -->
+        <polygon points="148,108 176,14 118,72" fill="#110a0c"/>
+        <!-- right ear inner -->
+        <polygon points="145,102 164,30 124,70" fill="#1e0f12"/>
+
+        <!-- head silhouette — angular -->
+        <path d="
+          M52,108
+          L30,148
+          L34,182
+          L56,212
+          L80,226
+          L100,230
+          L120,226
+          L144,212
+          L166,182
+          L170,148
+          L148,108
+          L130,80
+          L100,72
+          L70,80
+          Z
+        " fill="#0e0a0b"/>
+
+        <!-- forehead plane -->
+        <path d="M70,80 L100,72 L130,80 L140,110 L100,104 L60,110 Z" fill="#130c0e"/>
+
+        <!-- snout block -->
+        <path d="M72,176 L80,154 L100,148 L120,154 L128,176 L120,204 L100,212 L80,204 Z" fill="#0b080a"/>
+
+        <!-- nose bridge -->
+        <path d="M88,148 L100,136 L112,148 L108,166 L100,170 L92,166 Z" fill="#160d0f"/>
+
+        <!-- nose tip -->
+        <path d="M88,196 L100,190 L112,196 L108,210 L100,214 L92,210 Z" fill="#0d080a"/>
+        <path d="M91,194 L100,189 L109,194 L106,205 L100,208 L94,205 Z" fill="#090607"/>
+        <!-- nose highlight -->
+        <ellipse cx="95" cy="193" rx="3" ry="2" fill="rgba(255,200,200,0.05)"/>
+
+        <!-- mouth line -->
+        <path d="M88,210 L100,220 L112,210" fill="none" stroke="#1e1214" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <line x1="100" y1="210" x2="100" y2="218" stroke="#1e1214" stroke-width="1"/>
+
+        <!-- LEFT eye socket -->
+        <path d="M52,128 L68,118 L86,124 L90,142 L80,154 L62,150 L50,140 Z" fill="#070506"/>
+        <!-- LEFT iris -->
+        <path d="M58,130 L70,122 L82,128 L84,142 L76,150 L62,148 L54,140 Z" fill="#1e0608"/>
+        <!-- LEFT pupil slit -->
+        <ellipse cx="69" cy="136" rx="5" ry="10" fill="#060405" transform="rotate(-4,69,136)"/>
+        <!-- LEFT glint -->
+        <ellipse cx="65" cy="130" rx="2" ry="1.5" fill="rgba(180,30,45,0.6)"/>
+
+        <!-- RIGHT eye socket -->
+        <path d="M148,128 L132,118 L114,124 L110,142 L120,154 L138,150 L150,140 Z" fill="#070506"/>
+        <!-- RIGHT iris -->
+        <path d="M142,130 L130,122 L118,128 L116,142 L124,150 L138,148 L146,140 Z" fill="#1e0608"/>
+        <!-- RIGHT pupil slit -->
+        <ellipse cx="131" cy="136" rx="5" ry="10" fill="#060405" transform="rotate(4,131,136)"/>
+        <!-- RIGHT glint -->
+        <ellipse cx="127" cy="130" rx="2" ry="1.5" fill="rgba(180,30,45,0.6)"/>
+
+        <!-- brow slash left -->
+        <path d="M50,122 L72,110 L88,116" fill="none" stroke="#2a1418" stroke-width="2.5" stroke-linecap="round"/>
+        <!-- brow slash right -->
+        <path d="M150,122 L128,110 L112,116" fill="none" stroke="#2a1418" stroke-width="2.5" stroke-linecap="round"/>
+
+        <!-- cheek plane left -->
+        <path d="M30,148 L52,128 L50,160 L38,178" fill="#0c0809" opacity="0.9"/>
+        <!-- cheek plane right -->
+        <path d="M170,148 L148,128 L150,160 L162,178" fill="#0c0809" opacity="0.9"/>
+
+        <!-- jaw left -->
+        <path d="M38,178 L56,212 L80,224 L80,204 L72,176 L50,160 Z" fill="#100b0d"/>
+        <!-- jaw right -->
+        <path d="M162,178 L144,212 L120,224 L120,204 L128,176 L150,160 Z" fill="#100b0d"/>
+
+        <!-- centre forehead line -->
+        <line x1="100" y1="72" x2="100" y2="104" stroke="#1e1214" stroke-width="1" opacity="0.5"/>
+
+        <!-- red rim glow -->
+        <path d="
+          M52,108 L30,148 L34,182 L56,212 L80,226 L100,230 L120,226 L144,212 L166,182 L170,148 L148,108 L130,80 L100,72 L70,80 Z
+        " fill="none" stroke="rgba(160,28,42,0.13)" stroke-width="3"/>
+      </svg>
+    </div>
+    <p class="hero-sub">Three divine vials.<br>All you require.</p>
+    <div class="scroll-hint">
+      <div class="scroll-hint-line"></div>
+      <span>Scroll to compounds</span>
+    </div>
+    <div class="hero-count">III</div>
+  </section>
+
+  <!-- CATALOG -->
+  <section id="catalog">
+    <div class="catalog-header">
+      <div class="catalog-title">The Compounds</div>
+      <div class="catalog-note">research use only — three and only three</div>
+    </div>
+    <div class="tiles" id="tiles">
+      <div class="tile" onclick="openProduct('rt')">
+        <span class="tile-index">01 / 03</span>
+        <div class="tile-name">GLP-RT</div>
+        <div class="tile-aka">Retatrutide</div>
+        <div class="tile-divider"></div>
+        <div class="tile-meta">
+          <div>
+            <div class="tile-price">$69.99</div>
+            <div class="tile-dose">10 mg / vial</div>
+          </div>
+        </div>
+        <div class="tile-arrow">→</div>
+      </div>
+      <div class="tile" onclick="openProduct('ghk')">
+        <span class="tile-index">02 / 03</span>
+        <div class="tile-name">GHK-CU</div>
+        <div class="tile-aka">Copper Peptide</div>
+        <div class="tile-divider"></div>
+        <div class="tile-meta">
+          <div>
+            <div class="tile-price">$49.99</div>
+            <div class="tile-dose">100 mg / vial</div>
+          </div>
+        </div>
+        <div class="tile-arrow">→</div>
+      </div>
+      <div class="tile" onclick="openProduct('mt2')">
+        <span class="tile-index">03 / 03</span>
+        <div class="tile-name">MT-2</div>
+        <div class="tile-aka">Melanotan II</div>
+        <div class="tile-divider"></div>
+        <div class="tile-meta">
+          <div>
+            <div class="tile-price">$49.99</div>
+            <div class="tile-dose">10 mg / vial</div>
+          </div>
+        </div>
+        <div class="tile-arrow">→</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT PAGE -->
+  <section id="product-page">
+    <a class="product-back" onclick="showCatalog()">← Back to compounds</a>
+    <div class="product-layout">
+      <!-- Left: info card -->
+      <div class="product-card" id="product-card-content">
+        <!-- filled by JS -->
+      </div>
+      <!-- Right: purchase -->
+      <div class="purchase-panel">
+        <div class="pp-title">Acquire</div>
+        <div class="pp-price-block">
+          <div class="pp-price" id="pp-price-val">--</div>
+          <div class="pp-per" id="pp-per-val">per vial</div>
+        </div>
+        <div class="pp-divider"></div>
+        <div class="pp-label">Quantity</div>
+        <div class="pp-qty-row">
+          <button class="qty-btn" onclick="changeQty(-1)">-</button>
+          <input type="number" id="qty-display" value="1" min="1" max="99" readonly>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+        <div class="deal-nudge" id="deal-nudge">
+          <div class="deal-nudge-icon">&#9095;</div>
+          <div class="deal-nudge-text" id="deal-nudge-text"></div>
+        </div>
+        <button class="pp-cta" onclick="addToCart()">Add to Stack</button>
+        <div class="pp-divider" style="margin-top:0"></div>
+        <div class="cart-header">
+          <span class="pp-label" style="margin-bottom:0">Your Stack</span>
+          <span class="cart-clear" onclick="clearCart()">clear</span>
+        </div>
+        <div id="cart-lines" class="cart-lines">
+          <div class="cart-empty">Nothing in the stack yet.</div>
+        </div>
+        <div class="pp-divider"></div>
+        <div id="discount-block" class="discount-block" style="display:none">
+          <div class="discount-tier-label" id="discount-tier-label"></div>
+          <div class="discount-savings" id="discount-savings"></div>
+        </div>
+        <div class="pp-total-row" style="margin-bottom:16px">
+          <div class="pp-total-label">Subtotal</div>
+          <div class="pp-total-val" id="pp-subtotal-val">--</div>
+        </div>
+        <div class="pp-total-row" id="savings-row" style="display:none; margin-bottom:16px">
+          <div class="pp-total-label" style="color:var(--accent)">You Save</div>
+          <div class="pp-total-val" style="color:var(--accent); font-size:20px" id="pp-savings-val">--</div>
+        </div>
+        <div class="pp-total-row" style="margin-bottom:24px">
+          <div class="pp-total-label">Total</div>
+          <div class="pp-total-val" id="pp-total-val">--</div>
+        </div>
+        <button class="pp-cta" onclick="sandboxOrder()" id="checkout-btn" style="display:none">Place Order</button>
+        <div class="pp-sandbox-note">Sandbox demo -- no real transaction processed.</div>
+        <div class="pp-confirm" id="pp-confirm">
+          Order queued: <span id="confirm-detail"></span><br>
+          <span style="color:var(--muted)">This is a sandbox simulation. No charge has been made.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-logo">JACKAL PHARMA</div>
+    <div class="footer-note">
+      For research use only.<br>
+      Not for human consumption.
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ── DOB selects population ──
+const daySelect = document.getElementById('dob-day');
+for (let d = 1; d <= 31; d++) {
+  const o = document.createElement('option');
+  o.value = d; o.textContent = d;
+  daySelect.appendChild(o);
+}
+const yearSelect = document.getElementById('dob-year');
+const thisYear = new Date().getFullYear();
+for (let y = thisYear; y >= thisYear - 100; y--) {
+  const o = document.createElement('option');
+  o.value = y; o.textContent = y;
+  yearSelect.appendChild(o);
+}
+
+// ── Gate verify ──
+function verifyGate() {
+  const err = document.getElementById('gate-error');
+  const m = parseInt(document.getElementById('dob-month').value);
+  const d = parseInt(document.getElementById('dob-day').value);
+  const y = parseInt(document.getElementById('dob-year').value);
+  const checked = document.getElementById('disclaimer-check').checked;
+  if (!m || !d || !y) { err.textContent = 'Please select your full date of birth.'; return; }
+  if (!checked) { err.textContent = 'You must acknowledge the research disclaimer.'; return; }
+  const dob = new Date(y, m - 1, d);
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const mDiff = now.getMonth() - dob.getMonth();
+  if (mDiff < 0 || (mDiff === 0 && now.getDate() < dob.getDate())) age--;
+  if (age < 21) { err.textContent = 'Access denied. You must be 21 or older to enter.'; return; }
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('site').classList.add('visible');
+  setupScrollObserver();
+}
+
+// ── Product data ──
+const products = {
+  rt: {
+    id: 'rt', index: '01 / 03', name: 'GLP-RT', aka: 'Retatrutide',
+    price: 69.99, dose: '10 mg / vial',
+    body: `Retatrutide is a triple agonist peptide acting on GLP-1, GIP, and glucagon receptors simultaneously — a triple threat in the truest sense. It's currently under clinical investigation for metabolic conditions. Research interest centers on its potency relative to dual-agonist predecessors. One vial. Ten milligrams. Make it count.`,
+    props: [
+      { label: 'Sequence', val: 'Triple Receptor Agonist' },
+      { label: 'Class', val: 'Incretin Mimetic' },
+      { label: 'Format', val: 'Lyophilized Powder' },
+      { label: 'Purity', val: '>98%' },
+    ]
+  },
+  ghk: {
+    id: 'ghk', index: '02 / 03', name: 'GHK-CU', aka: 'Copper Peptide',
+    price: 49.99, dose: '100 mg / vial',
+    body: `GHK-Cu is a naturally occurring copper complex known for its broad research profile — from tissue remodeling and wound repair to anti-inflammatory and antioxidant activity. It has earned its place here. One hundred milligrams, because this one you will actually go through.`,
+    props: [
+      { label: 'Sequence', val: 'Gly-His-Lys-Cu' },
+      { label: 'Class', val: 'Copper Tripeptide' },
+      { label: 'Format', val: 'Lyophilized Powder' },
+      { label: 'Purity', val: '>99%' },
+    ]
+  },
+  mt2: {
+    id: 'mt2', index: '03 / 03', name: 'MT-2', aka: 'Melanotan II',
+    price: 49.99, dose: '10 mg / vial',
+    body: `Melanotan II is a synthetic analog of alpha-MSH, a melanocortin receptor agonist with a substantial research history. Its interaction with MC1R, MC3R, MC4R, and MC5R makes it one of the more interesting compounds in the peptide space. Research purposes only. You already knew that.`,
+    props: [
+      { label: 'Sequence', val: 'Ac-Nle-cyclo[Asp-His-D-Phe-Arg-Trp-Lys]-NH2' },
+      { label: 'Class', val: 'Melanocortin Agonist' },
+      { label: 'Format', val: 'Lyophilized Powder' },
+      { label: 'Purity', val: '>98%' },
+    ]
+  }
+};
+
+// ── Discount tiers (mix & match: unique product types in cart) ──
+// uniqueTypes = number of distinct peptides in cart
+// totalVials  = total quantity across all cart items
+function getDiscount(cart) {
+  const uniqueTypes = new Set(cart.map(i => i.id)).size;
+  const totalVials = cart.reduce((s, i) => s + i.qty, 0);
+  if (uniqueTypes >= 3) {
+    // All three = 20% off everything
+    return { pct: 0.20, label: 'THE TRIAD — 20% OFF', desc: 'All three compounds unlocked. 20% off your entire stack. This is the move.' };
+  } else if (uniqueTypes === 2 && totalVials >= 4) {
+    // Two types, 4+ vials total = 15% off
+    return { pct: 0.15, label: 'DEEP STACK — 15% OFF', desc: 'Four vials across two compounds. 15% knocked off.' };
+  } else if (uniqueTypes === 2) {
+    // Two types = 10% off
+    return { pct: 0.10, label: 'DUAL STACK — 10% OFF', desc: 'Two compounds, one order. 10% off the full cart.' };
+  } else if (totalVials >= 3) {
+    // Single type, 3+ vials = 8% off
+    return { pct: 0.08, label: 'BULK PULL — 8% OFF', desc: '3+ vials of a single compound. 8% off for committing.' };
+  }
+  return null;
+}
+
+function getNudge(cart, currentId) {
+  const uniqueTypes = new Set(cart.map(i => i.id));
+  const totalVials = cart.reduce((s, i) => s + i.qty, 0);
+  // Cart is empty or only has current product
+  if (cart.length === 0) {
+    return 'Stack with any other compound to unlock <strong>10% off your order</strong>.';
+  }
+  if (!uniqueTypes.has(currentId) && uniqueTypes.size === 1) {
+    return 'Adding this unlocks a <strong>Dual Stack — 10% off</strong> everything in your cart.';
+  }
+  if (!uniqueTypes.has(currentId) && uniqueTypes.size === 2) {
+    return 'Adding this completes <strong>The Triad — 20% off your entire order</strong>. Do it.';
+  }
+  if (uniqueTypes.has(currentId) && uniqueTypes.size === 2 && totalVials < 4) {
+    const needed = 4 - totalVials;
+    return `Add ${needed} more vial${needed > 1 ? 's' : ''} (any compound) to reach <strong>Deep Stack — 15% off</strong>.`;
+  }
+  if (uniqueTypes.size < 3) {
+    const missing = Object.keys(products).filter(k => !uniqueTypes.has(k));
+    const missingNames = missing.map(k => products[k].name).join(' or ');
+    return `Add ${missingNames} to complete <strong>The Triad — 20% off</strong>.`;
+  }
+  return null;
+}
+
+// ── Cart state ──
+let cart = []; // [{id, name, price, dose, qty}]
+let currentProduct = null;
+let qty = 1;
+
+function addToCart() {
+  if (!currentProduct) return;
+  const existing = cart.find(i => i.id === currentProduct.id);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    cart.push({ id: currentProduct.id, name: currentProduct.name, price: currentProduct.price, dose: currentProduct.dose, qty });
+  }
+  qty = 1;
+  document.getElementById('qty-display').value = 1;
+  renderCart();
+  document.getElementById('pp-confirm').classList.remove('show');
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  renderCart();
+}
+
+function clearCart() {
+  cart = [];
+  renderCart();
+  document.getElementById('pp-confirm').classList.remove('show');
+}
+
+function renderCart() {
+  const linesEl = document.getElementById('cart-lines');
+  if (cart.length === 0) {
+    linesEl.innerHTML = '<div class="cart-empty">Nothing in the stack yet.</div>';
+  } else {
+    linesEl.innerHTML = cart.map(item => `
+      <div class="cart-line">
+        <span class="cart-line-name">${item.name}</span>
+        <span class="cart-line-qty">x${item.qty}</span>
+        <span class="cart-line-price">$${(item.price * item.qty).toFixed(2)}</span>
+        <span class="cart-line-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</span>
+      </div>
+    `).join('');
+  }
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const discount = getDiscount(cart);
+
+  // Discount block
+  const discountBlock = document.getElementById('discount-block');
+  const savingsRow = document.getElementById('savings-row');
+  if (discount && cart.length > 0) {
+    discountBlock.style.display = 'block';
+    document.getElementById('discount-tier-label').textContent = discount.label;
+    document.getElementById('discount-savings').textContent = discount.desc;
+    const savings = subtotal * discount.pct;
+    const total = subtotal - savings;
+    document.getElementById('pp-subtotal-val').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('pp-subtotal-val').classList.add('strikethrough-val');
+    document.getElementById('pp-savings-val').textContent = '-$' + savings.toFixed(2);
+    document.getElementById('pp-total-val').textContent = '$' + total.toFixed(2);
+    savingsRow.style.display = 'flex';
+  } else {
+    discountBlock.style.display = 'none';
+    document.getElementById('pp-subtotal-val').textContent = '--';
+    document.getElementById('pp-subtotal-val').classList.remove('strikethrough-val');
+    document.getElementById('pp-total-val').textContent = cart.length > 0 ? '$' + subtotal.toFixed(2) : '--';
+    savingsRow.style.display = 'none';
+  }
+
+  // Checkout button
+  document.getElementById('checkout-btn').style.display = cart.length > 0 ? 'block' : 'none';
+
+  // Nudge
+  updateNudge();
+}
+
+function updateNudge() {
+  if (!currentProduct) return;
+  const nudgeEl = document.getElementById('deal-nudge');
+  const nudgeText = document.getElementById('deal-nudge-text');
+  const msg = getNudge(cart, currentProduct.id);
+  if (msg) {
+    nudgeText.innerHTML = msg;
+    nudgeEl.classList.add('show');
+  } else {
+    nudgeEl.classList.remove('show');
+  }
+}
+
+function changeQty(delta) {
+  qty = Math.max(1, Math.min(99, qty + delta));
+  document.getElementById('qty-display').value = qty;
+}
+
+function sandboxOrder() {
+  if (!currentProduct || cart.length === 0) return;
+  const discount = getDiscount(cart);
+  const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+  const savings = discount ? subtotal * discount.pct : 0;
+  const total = (subtotal - savings).toFixed(2);
+  const lines = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+  document.getElementById('confirm-detail').textContent = `${lines} — $${total}${discount ? ' (' + discount.label + ')' : ''}`;
+  document.getElementById('pp-confirm').classList.add('show');
+}
+
+function openProduct(id) {
+  currentProduct = products[id];
+  qty = 1;
+  const card = document.getElementById('product-card-content');
+  const p = currentProduct;
+  card.innerHTML = `
+    <span class="tile-index">${p.index}</span>
+    <div class="tile-name">${p.name}</div>
+    <div class="tile-aka">${p.aka}</div>
+    <div class="tile-divider"></div>
+    <div class="product-body">${p.body}</div>
+    <div class="product-props">
+      ${p.props.map(pr => `<div class="prop-row"><div class="prop-label">${pr.label}</div><div class="prop-val">${pr.val}</div></div>`).join('')}
+    </div>
+    <div class="tile-divider" style="margin-top:36px"></div>
+    <div class="deal-explainer">
+      <div class="deal-ex-title">Stack &amp; Save</div>
+      <div class="deal-ex-grid">
+        <div class="deal-ex-row"><span class="deal-ex-badge">2 compounds</span><span class="deal-ex-val">10% off</span></div>
+        <div class="deal-ex-row"><span class="deal-ex-badge">2 compounds, 4+ vials</span><span class="deal-ex-val">15% off</span></div>
+        <div class="deal-ex-row deal-ex-highlight"><span class="deal-ex-badge">All 3 compounds</span><span class="deal-ex-val">20% off everything</span></div>
+        <div class="deal-ex-row"><span class="deal-ex-badge">3+ vials, single compound</span><span class="deal-ex-val">8% off</span></div>
+      </div>
+    </div>
+  `;
+  document.getElementById('pp-price-val').textContent = '$' + p.price.toFixed(2);
+  document.getElementById('pp-per-val').textContent = p.dose;
+  document.getElementById('qty-display').value = 1;
+  renderCart();
+  document.getElementById('catalog').style.display = 'none';
+  document.getElementById('hero').style.display = 'none';
+  document.getElementById('product-page').classList.add('open');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('main-nav').classList.add('show-full');
+}
+
+function showCatalog() {
+  document.getElementById('product-page').classList.remove('open');
+  document.getElementById('catalog').style.display = '';
+  document.getElementById('hero').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => {
+    document.getElementById('main-nav').classList.remove('show-full');
+    revealTiles();
+  }, 100);
+}
+
+function revealTiles() {
+  const tiles = document.querySelectorAll('.tile');
+  tiles.forEach((t, i) => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(40px)';
+    t.classList.remove('reveal');
+    setTimeout(() => t.classList.add('reveal'), i * 120);
+  });
+}
+
+function setupScrollObserver() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) { revealTiles(); observer.disconnect(); }
+    });
+  }, { threshold: 0.2 });
+  observer.observe(document.getElementById('catalog'));
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('main-nav');
+    if (window.scrollY > 60) nav.classList.add('show-full');
+    else nav.classList.remove('show-full');
+  });
+}
+</script>
+</body>
+</html>
